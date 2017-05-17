@@ -1,0 +1,31 @@
+{
+  "name": "cached-request",
+  "version": "1.0.0",
+  "description": "A caching layer on top of the request library in NodeJs",
+  "main": "cached-request.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dios-david/cached-request.git"
+  },
+  "keywords": [
+    "nodejs",
+    "request",
+    "promise",
+    "cache"
+  ],
+  "author": "David Dios",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/dios-david/cached-request/issues"
+  },
+  "homepage": "https://github.com/dios-david/cached-request#readme",
+  "dependencies": {
+    "log4js": "^1.1.1",
+    "moment": "^2.18.1",
+    "q": "^1.5.0",
+    "request": "^2.81.0"
+  }
+}
