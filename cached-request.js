@@ -1,8 +1,8 @@
 var log4js = require('log4js'),
-    logger = log4js.getLogger('CachedRequest'),
     moment = require('moment'),
     Q = require('q'),
-    request = require('request');
+    request = require('request'),
+    instances = 0;
 
 /**
  * @class CachedRequest
@@ -15,20 +15,25 @@ var log4js = require('log4js'),
  *              user: "foo",
  *              pass: "bar"
  *          },
- *          logLevel: 'WARN' //OFF|INFO|WARN, default: OFF
+ *          logging: true //default: false
  *      });
  */
 var CachedRequest = function(params) {
     var config = Object.assign({}, {
-            cacheThreshold: 1,
-            auth: null,
-            logLevel: 'OFF'
-        }, params);
+        cacheThreshold: 1,
+        auth: null,
+        logging: false
+    }, params);
 
+    this.cache = {};
     this.cacheThreshold = config.cacheThreshold;
     this.auth = config.auth;
-    this.logLevel = config.logLevel;
-    logger.setLevel(this.logLevel);
+    this.logging = config.logging;
+    this.logger = log4js.getLogger('CachedRequest #' + instances++);
+
+    if(!this.logging) {
+        this.logger.setLevel(log4js.levels.OFF);
+    }
 };
 
 CachedRequest.prototype = {
@@ -54,17 +59,17 @@ CachedRequest.prototype = {
 
         if(cachedData) {
             if (moment(cachedData.time).isAfter(moment().subtract(this.cacheThreshold, 'minutes'))) {
-                logger.info(url, 'has a valid cache');
+                this.logger.info(url, 'has a valid cache');
                 deferred.resolve(cachedData.data);
                 return deferred.promise;
 
             } else {
-                logger.info(url, 'has a cache but its expired');
+                this.logger.info(url, 'has a cache but its expired');
                 delete this.cache[url];
             }
         }
 
-        logger.info(url, 'has no cache');
+        this.logger.info(url, 'has no cache');
         return this.request(url, 'GET');
     },
 
@@ -79,17 +84,17 @@ CachedRequest.prototype = {
 
         if(cachedData) {
             if (moment(cachedData.time).isAfter(moment().subtract(this.cacheThreshold, 'minutes'))) {
-                logger.info(url, 'has a valid cache');
+                this.logger.info(url, 'has a valid cache');
                 deferred.resolve(cachedData.data);
                 return deferred.promise;
 
             } else {
-                logger.info(url, 'has a cache but its expired');
+                this.logger.info(url, 'has a cache but its expired');
                 delete this.cache[url];
             }
         }
 
-        logger.info(url, 'has no cache');
+        this.logger.info(url, 'has no cache');
         return this.request(url, 'POST', postData);
     },
 
@@ -103,7 +108,7 @@ CachedRequest.prototype = {
         var deferred = Q.defer(),
             self = this;
 
-        logger.info(url, 'request started');
+        this.logger.info(url, 'request started');
 
         request({
             url: url,
@@ -121,11 +126,11 @@ CachedRequest.prototype = {
 
         Q.when(deferred.promise,
             function (data) {
-                logger.info(url, 'request success');
+                self.logger.info(url, 'request success');
                 self.storeCache(postData ? url + JSON.stringify(postData) : url, data);
             },
             function (error) {
-                logger.warn(url, 'request error');
+                self.logger.warn(url, 'request error');
             }
         );
 
