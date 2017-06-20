@@ -15,19 +15,22 @@ var log4js = require('log4js'),
  *              user: "foo",
  *              pass: "bar"
  *          },
- *          logging: true //default: false
+ *          logging: true //default: false,
+ *          userAgent: 'My custom user agent' //optional
  *      });
  */
 var CachedRequest = function(params) {
     var config = Object.assign({}, {
         cacheThreshold: 1,
         auth: null,
-        logging: false
+        logging: false,
+        userAgent: 'CachedRequest - https://github.com/dios-david/cached-request'
     }, params);
 
     this.cache = {};
     this.cacheThreshold = config.cacheThreshold;
     this.auth = config.auth;
+    this.userAgent = config.userAgent;
     this.logging = config.logging;
     this.logger = log4js.getLogger('CachedRequest #' + instances++);
 
@@ -115,7 +118,10 @@ CachedRequest.prototype = {
             method: method,
             form: postData,
             auth: this.auth,
-            rejectUnauthorized : false
+            rejectUnauthorized: false,
+            headers: {
+                'User-Agent': this.userAgent
+            }
         }, function (error, response, body) {
             if (error) {
                 deferred.reject(error);
